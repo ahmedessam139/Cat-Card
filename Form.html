@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Form</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f4f8;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #718096;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #1a202c;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+    }
+
+    input:focus {
+      border-color: #4f87f0;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #4f87f0;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover  { background: #3a72d8; }
+    button:active { transform: scale(0.98); }
+    button:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: none;
+    }
+
+    .message.success {
+      background: #f0fff4;
+      color: #276749;
+      border: 1px solid #9ae6b4;
+      display: block;
+    }
+
+    .message.error {
+      background: #fff5f5;
+      color: #c53030;
+      border: 1px solid #feb2b2;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Add Contact</h1>
+    <p class="subtitle">Saves directly to Google Sheets</p>
+
+    <label for="name">Full Name</label>
+    <input type="text" id="name" placeholder="e.g. Ahmed Hassan" required />
+
+    <label for="number">Phone Number</label>
+    <input type="tel" id="number" placeholder="e.g. 01012345678" required />
+
+    <button id="submitBtn" onclick="submitForm()">Save to Sheet</button>
+
+    <div class="message" id="msg"></div>
+  </div>
+
+  <script>
+    // ⬇️ Replace this with your Google Apps Script deployment URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwY4XoLScXAMVYLeKr6JjOuWvDKZChhfbPpLvrPU_wPkYqZ-rlJKK01u3KW5_tWZsw4Iw/exec";
+
+    async function submitForm() {
+      const name   = document.getElementById("name").value.trim();
+      const number = document.getElementById("number").value.trim();
+      const btn    = document.getElementById("submitBtn");
+      const msg    = document.getElementById("msg");
+
+      msg.className = "message";
+      msg.textContent = "";
+
+      if (!name || !number) {
+        msg.className = "message error";
+        msg.textContent = "Please fill in both fields.";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving…";
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",      // required for Apps Script
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, number })
+        });
+
+        // no-cors means we can't read the response, but if no error was thrown it worked
+        msg.className = "message success";
+        msg.textContent = "✓ Saved to Google Sheets!";
+        document.getElementById("name").value   = "";
+        document.getElementById("number").value = "";
+
+      } catch (err) {
+        msg.className = "message error";
+        msg.textContent = "Failed to save. Check the script URL and try again.";
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Save to Sheet";
+    }
+  </script>
+</body>
+</html>
